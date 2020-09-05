@@ -240,7 +240,7 @@ void Controller::drawCursor(RenderWindow& window)
 
 void Controller::drawScore(RenderWindow& window)
 {
-	text.setString(L"점수:"+to_string(score)+L"\n시간:"+to_string((int)(clock() - lastTime)/1000)+L"초\n\n조작법\n양자 분리:<ALT>\n양자 병합:<c>\n블록 놓기: <space>");
+	text.setString(L"점수:"+to_string(score)+L"\n시간:"+to_string((int)(clock() - lastTime)/1000)+L"초\n\n조작법\n양자 분리:<ALT>\n양자 병합:<c>\n블록 놓기: <space>\n게임 종료:<Esc>");
 	window.draw(text);
 }
 

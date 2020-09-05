@@ -15,7 +15,7 @@ void	hideConsole(void)
 {
 	//콘솔 창을 보이지 않도록 합니다.
 	HWND hWndConsole = GetConsoleWindow();
-	ShowWindow(hWndConsole, SW_SHOW);
+	ShowWindow(hWndConsole, SW_HIDE);
 }
 
 int main(void)
@@ -25,7 +25,7 @@ int main(void)
 	font.loadFromFile("font/D2Coding/D2Coding-Ver1.3.2-20180524.ttf");
 	option op;
 	RenderWindow* window;
-	window = new RenderWindow(VideoMode(op.width * BLOCK_SIZE, op.hight * BLOCK_SIZE + 7 * FT_S_score), TITLE);
+	window = new RenderWindow(VideoMode(op.width * BLOCK_SIZE, op.hight * BLOCK_SIZE + 10 * FT_S_score), TITLE);
 	window->setFramerateLimit(60);
 
 	//메뉴
@@ -39,6 +39,8 @@ int main(void)
 		while (window->pollEvent(e)) {
 			if (e.type == Event::Closed)
 				window->close();
+			else if (e.type == Event::KeyPressed && e.key.code == Keyboard::Escape && Mode != Menu::OPTION)
+				Mode = Menu::MainMenu;
 			else
 			{
 				switch (Mode)
@@ -74,7 +76,7 @@ int main(void)
 					case Menu::MainMenu:
 						window->close();
 						safe_delete(window);
-						window = new RenderWindow(VideoMode(op.width*BLOCK_SIZE, op.hight*BLOCK_SIZE + 7*FT_S_score), TITLE);
+						window = new RenderWindow(VideoMode(op.width*BLOCK_SIZE, op.hight*BLOCK_SIZE + 10*FT_S_score), TITLE);
 						Mode = temp;
 						break;
 					}
