@@ -7,10 +7,7 @@
 
 
 
-Pos traversal[4] = { Pos(0,-1),Pos(0,1),Pos(-1,0),Pos(1,0) };
-
-Pos::Pos() :x(0), y(0) {};
-Pos::Pos(int x, int y) :x(x), y(y) {};
+Vector2i traversal[4] = { Vector2i(0,-1),Vector2i(0,1),Vector2i(-1,0),Vector2i(1,0) };
 
 Block::Block()
 {//Block 생성자
@@ -27,8 +24,8 @@ void Block::getRect(RectangleShape& rect)
 		color.a = 255;//알파 값을 불투명하게 만든다.
 	rect.setFillColor(color);
 	Vector2f temp;
-	temp.x = pos.x * BlOCK_SIZE;
-	temp.y = pos.y * BlOCK_SIZE;
+	temp.x = pos.x * BLOCK_SIZE;
+	temp.y = pos.y * BLOCK_SIZE;
 	rect.setPosition(temp);
 }
 
@@ -59,7 +56,7 @@ void Block::setType(unsigned int type)
 	}
 }
 
-void Block::setQuantum(Pos pos)
+void Block::setQuantum(Vector2i pos)
 {
 	quantum = pos;
 }
@@ -80,32 +77,31 @@ unsigned int Block::getScore(void)
 	}
 }
 
-Map::Map() {};
-Map::Map(unsigned int width, unsigned int hight) :width(width), hight(hight)
+Map::Map(option &op) :op(op)
 {//Map 생성자
 
 	//map 선언 및 할당(c++에서 new는 malloc이랑 같다)
-	map = new vector<vector<Block>>(hight, vector<Block>(width, Block()));
-	for(int i = 0; i < width; ++i)
-		for (int j = 0; j < hight; ++j)
+	map = new vector<vector<Block>>(op.hight, vector<Block>(op.width, Block()));
+	for(unsigned int i = 0; i < op.width; ++i)
+		for (unsigned int j = 0; j < op.hight; ++j)
 		{
 			(*map)[j][i].pos.x = i, (*map)[j][i].pos.y = j;
 		}
 
 	//dp 선언 및 할당(c++에서 new는 malloc이랑 같다)
-	dp = new bool* [hight];
-	for (unsigned int i = 0; i < hight; ++i)
-		dp[i] = new bool[width];
+	dp = new bool* [op.hight];
+	for (unsigned int i = 0; i < op.hight; ++i)
+		dp[i] = new bool[op.width];
 }
-Block& Map::getBlock(Pos pos) {
+Block& Map::getBlock(Vector2i pos) {
 	return (*map)[pos.y][pos.x];
 }
-void Map::setBlock(Pos pos, unsigned int type)
+void Map::setBlock(Vector2i pos, unsigned int type)
 {//pos위치가 map을 벗어나지 않았다면, 블록의 type을 설정한다
 	if (Map_isIn(pos.x, pos.y))
 		getBlock(pos).setType(type);
 }
-bool Map::canMove(Pos pos)
+bool Map::canMove(Vector2i pos)
 {//pos위치에 다른 블록을 놓을 수 있는지 반환한다. 놓을 수 있으면 true, 놓을 수 없으면 false를 반환한다
 	if (Map_isIn(pos.x, pos.y))
 		if (getBlock(pos).getType() == Block::EMPTY)
@@ -114,10 +110,10 @@ bool Map::canMove(Pos pos)
 }
 void Map::initDp()
 {//동적계획법을 위해 dp를 초기화하는 함수
-	for (unsigned int i = 0; i < hight; i++)
-		memset(dp[i], 0, sizeof(bool) * width);
+	for (unsigned int i = 0; i < op.hight; i++)
+		memset(dp[i], 0, sizeof(bool) * op.width);
 }
-void Map::dpCount(unsigned int i, unsigned int j, unsigned int type, vector<Pos>& pos)
+void Map::dpCount(unsigned int i, unsigned int j, unsigned int type, vector<Vector2i>& pos)
 {
 	//동적계획법을 이용하여 인접한 같은 type의 블록의 위치를 pos에 반환한다
 	if (!Map_isIn(j, i))
@@ -127,7 +123,7 @@ void Map::dpCount(unsigned int i, unsigned int j, unsigned int type, vector<Pos>
 		if (type == (*map)[i][j].getType() && (*map)[i][j].split == false)
 		{
 			dp[i][j] = true;
-			pos.push_back(Pos(j, i));
+			pos.push_back(Vector2i(j, i));
 			for (int k = 0; k < 4; ++k)
 				dpCount(i + traversal[k].y, j + traversal[k].x, type, pos);
 			return;
@@ -138,13 +134,13 @@ void Map::dpCount(unsigned int i, unsigned int j, unsigned int type, vector<Pos>
 	return;
 }
 
-void Map::mergeBlock(void)
+void Map::mergeBlock(unsigned int type)
 {
-	for (unsigned int i = 0; i < hight; ++i)
+	for (unsigned int i = 0; i < op.hight; ++i)
 	{
-		for (unsigned int j = 0; j < width; ++j)
+		for (unsigned int j = 0; j < op.width; ++j)
 		{
-			if ((*map)[i][j].split)
+			if ((*map)[i][j].split && (op.mergeMode == 0 || (*map)[i][j].getType() == type))
 			{
 				bool temp = rand() % 2;
 				if (temp)
@@ -162,7 +158,7 @@ void Map::mergeBlock(void)
 	}
 }
 
-unsigned int Map::Pang(vector<Pos>& pos)
+unsigned int Map::Pang(vector<Vector2i>& pos)
 {//pos에 담긴 모든 위치에 해당하는 블록들을 터뜨리고 점수를 반환한다(블록의 type을 EMPTY로 만든다)
 	unsigned int score = 0;
 	int i = 1;
@@ -177,13 +173,13 @@ unsigned int Map::refresh()
 {//맵에 터질 블록이 존재한다면 모두 터뜨린 후, 그 점수를 반환합니다.
 	initDp();
 	unsigned int score = 0;
-	for (unsigned int i = 0; i < hight; ++i)
+	for (unsigned int i = 0; i < op.hight; ++i)
 	{
-		for (unsigned int j = 0; j < width; ++j)
+		for (unsigned int j = 0; j < op.width; ++j)
 		{
 			if (dp[i][j])
 				continue;
-			vector<Pos> temp;
+			vector<Vector2i> temp;
 			dpCount(i, j, (*map)[i][j].getType(), temp);
 			if (temp.size() >= 3)
 				score += Pang(temp);
@@ -192,19 +188,20 @@ unsigned int Map::refresh()
 	return score;
 }
 
-Controller::Controller(unsigned int map_width, unsigned int map_hight, Font &font) :map(Map(map_width, map_hight)), lastTime(0), lastKeyTyped(0), gameMode(0)
+Controller::Controller(option &op, Font &font) :map(Map(op)), lastTime(0), lastKeyTyped(0), gameMode(0),op(op)
 {//Controller 생성자
 
 	score = 0;
 	cursor.x = 0;
 	cursor.y = 0;
 	Vector2f temp;
-	temp.x = BlOCK_SIZE; temp.y = BlOCK_SIZE;
+	temp.x = BLOCK_SIZE; temp.y = BLOCK_SIZE;
 	rect.setSize(temp);
 
-	temp.y = BlOCK_SIZE * map_hight; temp.x = 10;
+	temp.y = BLOCK_SIZE * op.hight; temp.x = 10;
 	text.setFont(font);//점수 표시용 폰트 설정
-	text.setFillColor(Color::White);
+	text.setFillColor(FT_C_score);
+	text.setCharacterSize(FT_S_score);
 	text.setPosition(temp);
 
 	newTurn();
@@ -234,7 +231,7 @@ void Controller::drawCursor(RenderWindow& window)
 	Block temp;
 	temp.setType(cursorType);
 	Vector2f temp2;
-	temp2.x = cursor.x * BlOCK_SIZE; temp2.y = cursor.y * BlOCK_SIZE;
+	temp2.x = cursor.x * BLOCK_SIZE; temp2.y = cursor.y * BLOCK_SIZE;
 	temp.color.a = 200;
 	rect.setFillColor(temp.color);
 	rect.setPosition(temp2);
@@ -243,12 +240,27 @@ void Controller::drawCursor(RenderWindow& window)
 
 void Controller::drawScore(RenderWindow& window)
 {
-	text.setString("score:"+to_string(score)+"\ntime:"+to_string((int)(clock() - lastTime)/1000)+"sec\n\nHow to control\nsplit:<ALT>\nmerge:<c>\nset: <space>");
+	text.setString(L"점수:"+to_string(score)+L"\n시간:"+to_string((int)(clock() - lastTime)/1000)+L"초\n\n조작법\n양자 분리:<ALT>\n양자 병합:<c>\n블록 놓기: <space>");
 	window.draw(text);
 }
 
-void Controller::play(RenderWindow& window, Event& e)
+void Controller::play(RenderWindow& window)
 {
+	if (clock() - lastTime > TURN_INTERVAL)
+	{
+		if(score >= 10)
+			score -= 10;
+		newTurn();
+	}
+
+	score += map.refresh();
+	drawMap(window);
+	drawCursor(window);
+	drawScore(window);
+}
+
+void Controller::inputProcess(Event& e)
+{//사용자의 입력을 처리합니다
 	if (e.type == Event::KeyPressed)
 	{
 		if (clock() - lastKeyTyped > KEY_INTERVAL)
@@ -264,15 +276,15 @@ void Controller::play(RenderWindow& window, Event& e)
 
 			}
 			else if (e.key.code == Keyboard::Right)
-				cursor.x = (cursor.x + 1) % map.width;
+				cursor.x = (cursor.x + 1) % op.width;
 			else if (e.key.code == Keyboard::Left)
-				cursor.x = (cursor.x - 1 + map.width) % map.width;
+				cursor.x = (cursor.x - 1 + op.width) % op.width;
 			else if (e.key.code == Keyboard::Up)
-				cursor.y = (cursor.y - 1 + map.hight) % map.hight;
+				cursor.y = (cursor.y - 1 + op.hight) % op.hight;
 			else if (e.key.code == Keyboard::Down)
-				cursor.y = (cursor.y + 1) % map.hight;
+				cursor.y = (cursor.y + 1) % op.hight;
 			else if (e.key.code == Keyboard::C)//merge
-				map.mergeBlock();
+				map.mergeBlock(cursorType);
 			else if (e.key.code == Keyboard::LAlt || e.key.code == Keyboard::RAlt)//split
 			{
 				if (map.getBlock(cursor).getType() == Block::EMPTY)
@@ -297,18 +309,4 @@ void Controller::play(RenderWindow& window, Event& e)
 			}
 		}
 	}
-
-	if (clock() - lastTime > TURN_INTERVAL)
-	{
-		if(score >= 10)
-			score -= 10;
-		newTurn();
-	}
-
-	score += map.refresh();
-	window.clear();
-	drawMap(window);
-	drawCursor(window);
-	drawScore(window);
-	window.display();
 }
