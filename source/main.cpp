@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include <vector>
 
-#define TITLE "QuantumPang v1.1 by Ssootube"
+#define TITLE "QuantumPang v2.0 by Ssootube"
 #define safe_delete(pointer) if(pointer != NULL) delete pointer;
 using namespace std;
 using namespace sf;
