@@ -16,13 +16,21 @@ pang type of game using quantum theory concepts
 https://www.notion.so/f87e13edb6334beeaf1b07f20e063c14
 
 ### 2.조작법
+
 메뉴 이동: 위, 아래 방향키
+
 메뉴 선택: 스페이스바 혹은 엔터
+
 옵션 값 조절: 좌, 우 방향키
+
 블록 이동: 상,하,좌,우 방향키
+
 양자 분리: ALT
+
 양자 병합: C
+
 블록 놓기: 스페이스바
+
 게임 종료: Esc
 
 ### 3.메인 메뉴
@@ -31,7 +39,7 @@ https://www.notion.so/f87e13edb6334beeaf1b07f20e063c14
 메인 메뉴는 위에서부터 게임시작, 게임설정 입니다.
 
 ### 4.게임 설정
-![image](https://user-images.githubusercontent.com/58128848/96973926-80a99b80-1553-11eb-861e-f06fad6f50c8.png)
+![image](https://user-images.githubusercontent.com/58128848/96973862-6ec7f880-1553-11eb-8323-e83833824720.png)
 
 메인 메뉴에서 '게임 설정'을 선택하면 위와 같은 옵션 페이지로 넘어옵니다.
 옵션 메뉴는 위에서 부터 차례대로 가로 사이즈, 세로 사이즈, 병합 모드, 옵션 저장입니다.
